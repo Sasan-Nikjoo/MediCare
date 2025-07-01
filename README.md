@@ -1,7 +1,7 @@
-# 🩺 داروخانه دکتر نیک جو - Pharmacy Management App
+# 🩺 Dr. Nikjoo Pharmacy - Pharmacy Management App
 
-Welcome to the **Pharmacy Management App** for **داروخانه دکتر نیک جو**!  
-This professional, user-friendly mobile application is designed to streamline patient prescription (recipe) management for pharmacies. Built with **React Native** and **Expo**, it offers a modern, responsive interface with a consistent design, enabling pharmacists to efficiently manage patient records, search by national ID, and perform CRUD operations.
+Welcome to the **Pharmacy Management App** for **Dr. Nikjoo Pharmacy**!  
+This professional, user-friendly mobile application is designed to streamline patient prescription management for pharmacies. Built with **React Native** and **Expo**, it offers a modern, responsive interface with a consistent design, enabling pharmacists to efficiently manage patient records, search by national ID, and perform CRUD operations.
 
 ---
 
@@ -10,8 +10,8 @@ This professional, user-friendly mobile application is designed to streamline pa
 ### 🔍 Search by National ID
 - Quickly filter patient prescriptions using the Iranian national ID.
 
-### 📋 Recipe Management
-- **Add**: Create new prescriptions with fields for national ID, patient name, recipe details, and price.
+### 📋 Prescription Management
+- **Add**: Create new prescriptions with fields for national ID, patient name, prescription details, and price.
 - **View**: Display detailed prescription information, including timestamp.
 - **Edit**: Update existing prescriptions with pre-filled forms.
 - **Delete**: Remove prescriptions with confirmation alerts.
@@ -26,7 +26,7 @@ This professional, user-friendly mobile application is designed to streamline pa
 - **Modern cards**:
   - Rounded corners, subtle shadows, blue left borders
 - **Branded header**:
-  - "داروخانه دکتر نیک جو" on the main screen
+  - "Dr. Nikjoo Pharmacy" on the main screen
 
 ### 📱 Responsive Design
 - Optimized for Android and iOS using React Native
@@ -56,9 +56,9 @@ This professional, user-friendly mobile application is designed to streamline pa
 ```
 pharmacy-app/
 ├── app/
-│   ├── Index.tsx           # Main screen with search and recipe list
-│   ├── recipe-details.tsx  # Displays detailed recipe info
-│   ├── add-recipe.tsx      # Form for adding/editing recipes
+│   ├── Index.tsx           # Main screen with search and prescription list
+│   ├── prescription-details.tsx  # Displays detailed prescription info
+│   ├── add-prescription.tsx      # Form for adding/editing prescriptions
 │   ├── _layout.tsx         # Navigation stack configuration
 ├── App.tsx                 # App entry point
 ├── package.json            # Dependencies and scripts
@@ -115,18 +115,18 @@ pharmacy-app/
 ## 🖥️ Usage
 
 ### Main Screen (`Index.tsx`) 🏠
-- Branded header: **داروخانه دکتر نیک جو**
+- Branded header: **Dr. Nikjoo Pharmacy**
 - Search bar to filter prescriptions by national ID
-- Tap a recipe card to view details or press 🗑️ to delete
+- Tap a prescription card to view details or press 🗑️ to delete
 - Press ➕ to add a new prescription
 
-### Recipe Details (`recipe-details.tsx`) 📄
-- Displays: national ID, patient name, recipe, price, timestamp
+### Prescription Details (`prescription-details.tsx`) 📄
+- Displays: national ID, patient name, prescription, price, timestamp
 - ✏️ Edit button navigates to the edit form
 - 🔙 Back button returns to the main screen
 
-### Add/Edit Recipe (`add-recipe.tsx`) ✍️
-- Fill/edit: national ID, name, recipe details, price
+### Add/Edit Prescription (`add-prescription.tsx`) ✍️
+- Fill/edit: national ID, name, prescription details, price
 - 💾 Save button stores data
 - 🔙 Back button cancels and returns
 
@@ -199,4 +199,4 @@ See the `LICENSE` file for details.
 
 For questions or feedback, reach out at **your-email@example.com** or open an issue on GitHub.
 
-> Built with 💙 by **[Your Name]** for **داروخانه دکتر نیک جو**
+> Built with 💙 by **Sasan Nikjoo** for **Dr. Nikjoo Pharmacy**
