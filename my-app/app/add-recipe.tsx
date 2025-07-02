@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation, useLocalSearchParams } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import 'react-native-get-random-values';
+import { MaterialIcons } from '@expo/vector-icons';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { v4 as uuidv4 } from 'uuid';
+import 'react-native-get-random-values';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RECIPES_STORAGE_KEY = '@medicare_recipes';
 
@@ -26,127 +18,135 @@ interface Recipe {
   timestamp: string;
 }
 
-export default function AddRecipeScreen() {
-  const navigation = useNavigation();
-  const params = useLocalSearchParams<{ recipe?: string }>();
-  let recipeToEdit: Recipe | undefined;
-  try {
-    recipeToEdit = params.recipe ? JSON.parse(params.recipe) : undefined;
-  } catch (error) {
-    console.error('Error parsing recipe params:', error);
-    Alert.alert('خطا', 'داده‌های دستورالعمل نامعتبر است.');
-    recipeToEdit = undefined;
-    navigation.goBack();
-  }
+type RootStackParamList = {
+  index: undefined;
+  'add-recipe': { recipe?: string };
+  'recipe-details': { recipe: string };
+};
 
-  const [nationalId, setNationalId] = useState(recipeToEdit ? recipeToEdit.nationalId : '');
-  const [patientName, setPatientName] = useState(recipeToEdit ? recipeToEdit.patientName : '');
-  const [recipe, setRecipe] = useState(recipeToEdit ? recipeToEdit.recipe : '');
-  const [price, setPrice] = useState(recipeToEdit ? recipeToEdit.price.toString() : '');
-  const [isSaving, setIsSaving] = useState(false);
+type NavigationProp = StackNavigationProp<RootStackParamList, 'add-recipe'>;
+
+export default function AddRecipe() {
+  const navigation = useNavigation<NavigationProp>();
+  const params = useLocalSearchParams<{ recipe?: string }>();
+  const [nationalId, setNationalId] = useState('');
+  const [patientName, setPatientName] = useState('');
+  const [recipeText, setRecipeText] = useState('');
+  const [price, setPrice] = useState('');
+  const [recipeId, setRecipeId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (recipeToEdit) {
-      navigation.setOptions({ title: 'ویرایش دستورالعمل' });
+    if (params.recipe) {
+      try {
+        const recipe: Recipe = JSON.parse(params.recipe);
+        setRecipeId(recipe.id);
+        setNationalId(recipe.nationalId);
+        setPatientName(recipe.patientName);
+        setRecipeText(recipe.recipe);
+        setPrice(recipe.price.toString());
+      } catch (error) {
+        console.error('Error parsing recipe params:', error);
+        Alert.alert('خطا', 'داده‌های دستورالعمل نامعتبر است.');
+      }
     }
-  }, [recipeToEdit, navigation]);
+  }, [params.recipe]);
 
   const handleSaveRecipe = async () => {
-    if (!nationalId || !patientName || !recipe || !price) {
-      Alert.alert('اطلاعات ناقص', 'لطفاً تمام فیلدها را پر کنید.');
+    if (!nationalId || !patientName || !recipeText || !price) {
+      Alert.alert('خطا', 'لطفاً تمام فیلدها را پر کنید.');
       return;
     }
 
     const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      Alert.alert('خطا در قیمت', 'لطفاً یک قیمت معتبر وارد کنید.');
+    if (isNaN(parsedPrice)) {
+      Alert.alert('خطا', 'قیمت باید یک عدد معتبر باشد.');
       return;
     }
 
-    setIsSaving(true);
+    const newRecipe: Recipe = {
+      id: recipeId || uuidv4(),
+      nationalId: nationalId.trim(),
+      patientName: patientName.trim(),
+      recipe: recipeText.trim(),
+      price: parsedPrice,
+      timestamp: new Date().toISOString(),
+    };
+
     try {
-      const existingRecipesString = await AsyncStorage.getItem(RECIPES_STORAGE_KEY);
-      let existingRecipes: Recipe[] = existingRecipesString ? JSON.parse(existingRecipesString) : [];
-
-      const newRecipe = {
-        id: recipeToEdit ? recipeToEdit.id : uuidv4(),
-        nationalId: nationalId.trim(),
-        patientName: patientName.trim(),
-        recipe: recipe.trim(),
-        price: parsedPrice,
-        timestamp: recipeToEdit ? recipeToEdit.timestamp : new Date().toISOString(),
-      };
-
-      let updatedRecipes: Recipe[];
-      if (recipeToEdit) {
-        updatedRecipes = existingRecipes.map((recipe) =>
-          recipe.id === recipeToEdit.id ? newRecipe : recipe
-        );
-      } else {
-        updatedRecipes = [newRecipe, ...existingRecipes];
-      }
-
+      const storedRecipes = await AsyncStorage.getItem(RECIPES_STORAGE_KEY);
+      const recipes: Recipe[] = storedRecipes ? JSON.parse(storedRecipes) : [];
+      const updatedRecipes = recipeId
+        ? recipes.map((r) => (r.id === recipeId ? newRecipe : r))
+        : [...recipes, newRecipe];
       await AsyncStorage.setItem(RECIPES_STORAGE_KEY, JSON.stringify(updatedRecipes));
-      Alert.alert('موفقیت', `دستورالعمل با موفقیت ${recipeToEdit ? 'ویرایش' : 'ذخیره'} شد!`);
-      setNationalId('');
-      setPatientName('');
-      setRecipe('');
-      setPrice('');
+      Alert.alert('موفقیت', recipeId ? 'دستورالعمل ویرایش شد!' : 'دستورالعمل اضافه شد!');
       navigation.goBack();
     } catch (error) {
       console.error('Error saving recipe:', error);
-      Alert.alert('خطا', 'خطا در ذخیره دستورالعمل. لطفاً دوباره تلاش کنید.');
-    } finally {
-      setIsSaving(false);
+      Alert.alert('خطا', 'خطا در ذخیره دستورالعمل.');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Text style={styles.title}>
-          {recipeToEdit ? 'ویرایش مشتری و دستورالعمل' : 'افزودن مشتری و دستورالعمل جدید'}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="کد ملی مشتری"
-          placeholderTextColor="#6c757d"
-          value={nationalId}
-          onChangeText={setNationalId}
-          keyboardType="numeric"
-          maxLength={10}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="نام بیمار"
-          placeholderTextColor="#6c757d"
-          value={patientName}
-          onChangeText={setPatientName}
-          autoCapitalize="words"
-        />
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="دستور ساخت دارو"
-          placeholderTextColor="#6c757d"
-          value={recipe}
-          onChangeText={setRecipe}
-          multiline
-          numberOfLines={4}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="قیمت (تومان)"
-          placeholderTextColor="#6c757d"
-          value={price}
-          onChangeText={setPrice}
-          keyboardType="numeric"
-        />
-        <Button
-          title={isSaving ? 'در حال ذخیره...' : recipeToEdit ? 'ذخیره تغییرات' : 'ذخیره دستورالعمل'}
-          onPress={handleSaveRecipe}
-          disabled={isSaving}
-          color="#28a745"
-        />
+        <Text style={styles.header}>{recipeId ? 'ویرایش دستورالعمل' : 'افزودن دستورالعمل جدید'}</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>کد ملی</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="کد ملی را وارد کنید..."
+            placeholderTextColor="#6c757d"
+            value={nationalId}
+            onChangeText={setNationalId}
+            keyboardType="numeric"
+            autoCapitalize="none"
+          />
+          <Text style={styles.cardLabel}>نام بیمار</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="نام بیمار را وارد کنید..."
+            placeholderTextColor="#6c757d"
+            value={patientName}
+            onChangeText={setPatientName}
+            autoCapitalize="words"
+          />
+          <Text style={styles.cardLabel}>دستور ساخت دارو</Text>
+          <TextInput
+            style={[styles.input, styles.multilineInput]}
+            placeholder="دستور ساخت دارو را وارد کنید..."
+            placeholderTextColor="#6c757d"
+            value={recipeText}
+            onChangeText={setRecipeText}
+            multiline
+            numberOfLines={4}
+          />
+          <Text style={styles.cardLabel}>قیمت (تومان)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="قیمت را وارد کنید..."
+            placeholderTextColor="#6c757d"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSaveRecipe}
+          >
+            <MaterialIcons name="save" size={26} color="#ffffff" />
+            <Text style={styles.buttonText}>ذخیره</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons name="arrow-back" size={26} color="#ffffff" />
+            <Text style={styles.buttonText}>بازگشت</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -158,30 +158,77 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   scrollViewContent: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
+  header: {
+    fontSize: 26,
+    fontWeight: '700',
     color: '#343a40',
     textAlign: 'center',
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    borderLeftWidth: 5,
+    borderLeftColor: '#007bff',
+  },
+  cardLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#343a40',
+    marginBottom: 4,
   },
   input: {
     height: 50,
     borderColor: '#ced4da',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    color: '#495057',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    color: '#343a40',
     backgroundColor: '#f1f3f5',
+    marginBottom: 12,
   },
-  textArea: {
-    height: 120,
+  multilineInput: {
+    height: 100,
     textAlignVertical: 'top',
-    paddingTop: 15,
+    paddingTop: 12,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 20,
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#28a745',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007bff',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 17,
+    fontWeight: '500',
+    marginLeft: 8,
   },
 });

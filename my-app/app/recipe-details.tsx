@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { StackNavigationProp } from '@react-navigation/stack';
+import moment from 'moment-jalaali';
 
 interface Recipe {
   id: string;
@@ -41,6 +41,11 @@ export default function RecipeDetails() {
     return null;
   }
 
+  // Validate timestamp
+  const formattedDate = moment(recipe.timestamp).isValid()
+    ? moment(recipe.timestamp).format('jYYYY/jMM/jDD HH:mm')
+    : 'تاریخ نامعتبر';
+
   const handleEditRecipe = () => {
     navigation.navigate('add-recipe', { recipe: JSON.stringify(recipe) });
   };
@@ -48,35 +53,33 @@ export default function RecipeDetails() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Text style={styles.title}>جزئیات دستورالعمل</Text>
-        <View style={styles.detailCard}>
-          <Text style={styles.detailLabel}>کد ملی:</Text>
-          <Text style={styles.detailValue}>{recipe.nationalId}</Text>
-          <Text style={styles.detailLabel}>نام بیمار:</Text>
-          <Text style={styles.detailValue}>{recipe.patientName}</Text>
-          <Text style={styles.detailLabel}>دستور ساخت دارو:</Text>
-          <Text style={styles.detailValue}>{recipe.recipe}</Text>
-          <Text style={styles.detailLabel}>قیمت:</Text>
-          <Text style={styles.detailValue}>{recipe.price} تومان</Text>
-          <Text style={styles.detailLabel}>تاریخ ثبت:</Text>
-          <Text style={styles.detailValue}>
-            {new Date(recipe.timestamp).toLocaleString('fa-IR')}
-          </Text>
+        <Text style={styles.header}>جزئیات دستورالعمل</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>کد ملی:</Text>
+          <Text style={styles.cardValue}>{recipe.nationalId}</Text>
+          <Text style={styles.cardLabel}>نام بیمار:</Text>
+          <Text style={styles.cardValue}>{recipe.patientName}</Text>
+          <Text style={styles.cardLabel}>دستور ساخت دارو:</Text>
+          <Text style={styles.cardValue}>{recipe.recipe}</Text>
+          <Text style={styles.cardLabel}>قیمت:</Text>
+          <Text style={styles.cardValue}>{recipe.price} تومان</Text>
+          <Text style={styles.cardLabel}>تاریخ ثبت:</Text>
+          <Text style={styles.cardValue}>{formattedDate}</Text>
         </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.editButton}
             onPress={handleEditRecipe}
           >
-            <MaterialIcons name="edit" size={24} color="white" />
             <Text style={styles.buttonText}>ویرایش</Text>
+            <MaterialIcons name="edit" size={26} color="#ffffff" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={24} color="white" />
             <Text style={styles.buttonText}>بازگشت</Text>
+            <MaterialIcons name="arrow-back" size={26} color="#ffffff" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -90,64 +93,70 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   scrollViewContent: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  header: {
+    fontSize: 26,
+    fontWeight: '700',
     color: '#343a40',
-    textAlign: 'center',
+    textAlign: 'right',
+    marginBottom: 20,
   },
-  detailCard: {
+  card: {
     backgroundColor: '#ffffff',
-    borderRadius: 10,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 3,
-    borderLeftWidth: 5,
-    borderLeftColor: '#007bff',
+    elevation: 4,
+    borderRightWidth: 5,
+    borderRightColor: '#007bff',
   },
-  detailLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  cardLabel: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#343a40',
-    marginTop: 10,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: 'right',
   },
-  detailValue: {
-    fontSize: 16,
+  cardValue: {
+    fontSize: 17,
     color: '#495057',
-    marginBottom: 10,
+    marginBottom: 8,
+    textAlign: 'right',
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'center',
     marginTop: 20,
     gap: 20,
   },
   editButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#28a745',
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   backButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     backgroundColor: '#007bff',
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   buttonText: {
-    color: 'white',
-    fontSize: 16,
-    marginLeft: 10,
+    color: '#ffffff',
+    fontSize: 17,
+    fontWeight: '500',
+    marginRight: 8,
+    textAlign: 'right',
   },
 });

@@ -15,6 +15,7 @@ import { useNavigation, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import moment from 'moment-jalaali';
 
 const RECIPES_STORAGE_KEY = '@medicare_recipes';
 
@@ -82,7 +83,8 @@ export default function Index() {
     } else {
       const lowerCaseQuery = searchQuery.toLowerCase();
       const filtered = allRecipes.filter((recipe) =>
-        recipe.nationalId.toLowerCase().includes(lowerCaseQuery)
+        recipe.nationalId.toLowerCase().includes(lowerCaseQuery) ||
+        recipe.patientName.toLowerCase().includes(lowerCaseQuery)
       );
       setFilteredRecipes(filtered);
     }
@@ -129,13 +131,18 @@ export default function Index() {
     >
       <Text style={styles.recipeTextBold}>کد ملی: {item.nationalId}</Text>
       <Text style={styles.recipeText}>نام بیمار: {item.patientName}</Text>
+      <Text style={styles.recipeText}>
+        تاریخ ثبت: {moment(item.timestamp).isValid()
+          ? moment(item.timestamp).format('jYYYY/jMM/jDD HH:mm')
+          : 'تاریخ نامعتبر'}
+      </Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.actionButton, styles.deleteButton]}
           onPress={() => handleDeleteRecipe(item.id)}
         >
-          <MaterialIcons name="delete" size={20} color="white" />
           <Text style={styles.actionButtonText}>حذف</Text>
+          <MaterialIcons name="delete" size={26} color="#ffffff" />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -144,7 +151,7 @@ export default function Index() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#007bff" />
         <Text style={styles.loadingText}>در حال بارگذاری لیست...</Text>
       </View>
     );
@@ -158,12 +165,12 @@ export default function Index() {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="جستجو بر اساس کد ملی..."
+          placeholder="جستجو بر اساس کد ملی یا نام بیمار..."
           placeholderTextColor="#6c757d"
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoCapitalize="none"
-          keyboardType="numeric"
+          textAlign="right"
         />
       </View>
       <FlatList
@@ -182,7 +189,7 @@ export default function Index() {
         }
       />
       <TouchableOpacity style={styles.addButton} onPress={navigateToAddRecipe}>
-        <MaterialIcons name="add" size={30} color="white" />
+        <MaterialIcons name="add" size={30} color="#ffffff" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -195,20 +202,20 @@ const styles = StyleSheet.create({
   },
   brandContainer: {
     backgroundColor: '#007bff',
-    paddingVertical: 15,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
   brandText: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontWeight: '700',
     color: '#ffffff',
-    textAlign: 'center',
+    textAlign: 'right',
   },
   loadingContainer: {
     flex: 1,
@@ -217,87 +224,91 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 18,
+    marginTop: 12,
+    fontSize: 20,
+    fontWeight: '600',
     color: '#343a40',
+    textAlign: 'right',
   },
   searchContainer: {
-    padding: 15,
+    padding: 16,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
   searchInput: {
     height: 50,
     borderColor: '#ced4da',
     borderWidth: 1,
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    color: '#495057',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    color: '#343a40',
     backgroundColor: '#f1f3f5',
+    textAlign: 'right',
   },
   listContent: {
-    padding: 15,
+    padding: 16,
   },
   recipeCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 3,
-    borderLeftWidth: 5,
-    borderLeftColor: '#007bff',
+    elevation: 4,
+    borderRightWidth: 5,
+    borderRightColor: '#007bff',
   },
   recipeTextBold: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontSize: 19,
+    fontWeight: '700',
     color: '#343a40',
+    marginBottom: 8,
+    textAlign: 'right',
   },
   recipeText: {
-    fontSize: 15,
+    fontSize: 17,
     color: '#495057',
-    marginBottom: 3,
+    marginBottom: 8,
+    textAlign: 'right',
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 10,
+    flexDirection: 'row-reverse',
+    justifyContent: 'flex-start',
+    marginTop: 12,
   },
   actionButton: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginLeft: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   deleteButton: {
     backgroundColor: '#dc3545',
   },
   actionButtonText: {
-    color: 'white',
-    fontSize: 14,
-    marginLeft: 5,
+    color: '#ffffff',
+    fontSize: 17,
+    fontWeight: '500',
+    marginRight: 8,
+    textAlign: 'right',
   },
   addButton: {
     position: 'absolute',
-    bottom: 30,
-    right: 30,
+    bottom: 32,
+    left: 32,
     backgroundColor: '#007bff',
     borderRadius: 30,
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -314,14 +325,15 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyListText: {
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: '600',
     color: '#6c757d',
-    textAlign: 'center',
-    marginBottom: 10,
+    textAlign: 'right',
+    marginBottom: 12,
   },
   emptyListSubText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6c757d',
-    textAlign: 'center',
+    textAlign: 'right',
   },
 });
